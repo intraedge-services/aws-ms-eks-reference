@@ -71,7 +71,6 @@ Parameters:
 
   CustomCfnBucketName:
     AllowedPattern: ^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$
-    Default: cf-templates-1vzdydri8ipup-us-west-2
     Description: Custom Cloudformation Bucket Name
     Type: String
     MinLength: 1
