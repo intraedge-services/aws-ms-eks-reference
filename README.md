@@ -19,5 +19,4 @@ For support around this stack or need help around your AWS Infrastructure and ap
 ## References
 - [AWS Quick Start EKS](https://github.com/aws-quickstart/quickstart-amazon-eks)
 - [AWS ALB Ingress Controller](https://docs.aws.amazon.com/eks/latest/userguide/alb-ingress.html)
-
-
+- [AWS EKS Monitoring](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Container-Insights-setup-EKS-quickstart.html)
