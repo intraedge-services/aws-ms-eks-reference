@@ -1,0 +1,121 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Launch OpenVPN Server in an existing Virtual Private Cloud (VPC).
+Parameters:
+  InstanceType:
+    Description: Instance type for OpenVPN Server
+    Type: String
+    Default: t2.micro
+    AllowedValues:
+      - t2.micro
+      - t2.small
+      - t2.medium
+    ConstraintDescription: must be a valid EC2 instance type.
+  SubnetId:
+    Type: 'AWS::EC2::Subnet::Id'
+    Description: The ID of a public subnet in your VPC
+  AdminUser:
+    Type: String
+    Description: OpenVPN admin account name
+    Default: openvpn
+  AdminPassword:
+    Type: String
+    Description: OpenVPN admin account initial password
+    NoEcho: 'true'
+    MinLength: '8'
+    MaxLength: '32'
+    ConstraintDescription: must contain at least 8 characters.
+  AdminCidrIp:
+    Type: String
+    Description: >-
+      Source cidr block where the admin will be administrating the OpenVPN
+      Server
+    Default: 0.0.0.0/0
+  KeyName:
+    Description: Name of an existing EC2 KeyPair to enable SSH access to the instances
+    Type: 'AWS::EC2::KeyPair::KeyName'
+    Default: schen
+  VpcId:
+    Description: The ID of a VPC hosting a NAT instance
+    Type: 'AWS::EC2::VPC::Id'
+Mappings:
+  RegionMap:
+    us-west-1:
+      AMI: ami-cfa64a8b
+    us-west-2:
+      AMI: ami-034692da3c6768a18
+Resources:
+  SecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      VpcId: !Ref VpcId
+      GroupDescription: Security group for OpenVPN Server
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '443'
+          ToPort: '443'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: udp
+          FromPort: '1192'
+          ToPort: '1192'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '945'
+          ToPort: '945'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '943'
+          ToPort: '943'
+          CidrIp: !Ref AdminCidrIp
+  IPAddress:
+    Type: 'AWS::EC2::EIP'
+    DeletionPolicy: Retain
+    Properties:
+      Domain: vpc
+  Instance:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      ImageId: !FindInMap 
+        - RegionMap
+        - !Ref 'AWS::Region'
+        - AMI
+      InstanceType: !Ref InstanceType
+      SecurityGroupIds:
+        - !Ref SecurityGroup
+      SubnetId: !Ref SubnetId
+      KeyName: !Ref KeyName
+      UserData: !Base64 
+        'Fn::Join':
+          - ''
+          - - public_hostname=
+            - !Ref IPAddress
+            - |+
+
+            - admin_user=
+            - !Ref AdminUser
+            - |+
+
+            - admin_pw=
+            - !Ref AdminPassword
+    DependsOn: IPAddress
+  IPAssoc:
+    Type: 'AWS::EC2::EIPAssociation'
+    Properties:
+      AllocationId: !GetAtt 
+        - IPAddress
+        - AllocationId
+      InstanceId: !Ref Instance
+    DependsOn: Instance
+Outputs:
+  OpenVPNServerAdminURL:
+    Value: !Join 
+      - ''
+      - - 'https://'
+        - !Ref IPAddress
+        - ':943/admin'
+    Description: OpenVPN Server Admin URL
+  OpenVPNServerURL:
+    Value: !Join 
+      - ''
+      - - 'https://'
+        - !Ref IPAddress
+    Description: OpenVPN Server URL
