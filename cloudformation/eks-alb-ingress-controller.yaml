@@ -35,7 +35,7 @@ Resources:
     Type: AWS::IAM::ManagedPolicy
     Description: "Policy Document for ALBIngressController. See https://docs.aws.amazon.com/eks/latest/userguide/alb-ingress.html"
     Properties:
-      Description: "Policy Document for ALBIngressController. See https://raw.githubusercontent.com/kubernetes-sigs/aws-alb-ingress-controller/v1.1.4/docs/examples/iam-policy.json"
+      Description: "Policy Document for ALBIngressController. See https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.6.2/docs/install/iam_policy.json"
       PolicyDocument: {
         "Version": "2012-10-17",
         "Statement": [
@@ -165,10 +165,10 @@ Resources:
             Principal:
               Federated: !Sub arn:aws:iam::${AWS::AccountId}:oidc-provider/${EksClusterOidcUrl}
             Action: sts:AssumeRoleWithWebIdentity
-#            Condition:
-#                This condition is not supported in EKS and needs to be manually added.
-#              StringEquals:
-#                "${EksClusterOidcUrl}:sub": system:serviceaccount:kube-system:alb-ingress-controller
+            Condition:
+              StringEquals:
+                "${EksClusterOidcUrl}:sub": "system:serviceaccount:kube-system:alb-ingress-controller"
+                "${EksClusterOidcUrl}:aud": "sts.amazonaws.com"
 
       ManagedPolicyArns:
         - !Ref ALBIngressControllerPolicy
@@ -358,7 +358,7 @@ Resources:
                     # a project like kube2iam for granting access.
                     #- name: AWS_SECRET_ACCESS_KEY
                     #  value: SECRETVALUE
-                  # Repository location of the ALB Ingress Controller.
-                  image: docker.io/amazon/aws-alb-ingress-controller:v1.1.4
+                  # Repository location of the AWS Load Balancer Controller.
+                  image: public.ecr.aws/eks/aws-load-balancer-controller:v2.6.2
               serviceAccountName: alb-ingress-controller
 

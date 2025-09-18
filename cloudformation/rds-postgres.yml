@@ -75,17 +75,19 @@ Parameters:
     Type: 'String'
     Description: 'Postgres Version'
     AllowedValues:
-      - '9.6.16'
-      - '11.6'
-    Default: '11.6'
+      - '13.13'
+      - '14.9'
+      - '15.4'
+    Default: '15.4'
 
   PostgresFamily:
     Type: 'String'
     Description: 'Postgres Family'
     AllowedValues:
-      - 'postgres9.6'
-      - 'postgres11'
-    Default: 'postgres11'
+      - 'postgres13'
+      - 'postgres14'
+      - 'postgres15'
+    Default: 'postgres15'
 
   MultiAZ:
     Type: String
@@ -100,8 +102,9 @@ Parameters:
 
 Conditions:
   JumpHostSecurityGroupPresent: !Not [!Equals [!Ref 'JumpHostSecurityGroup', '']]
-  Postgres96: !Equals [!Ref PostgresFamily, 'postgres9.6']
-  Postgres11: !Equals [!Ref PostgresFamily, 'postgres11']
+  Postgres13: !Equals [!Ref PostgresFamily, 'postgres13']
+  Postgres14: !Equals [!Ref PostgresFamily, 'postgres14']
+  Postgres15: !Equals [!Ref PostgresFamily, 'postgres15']
 
 
 Resources:
@@ -115,21 +118,29 @@ Resources:
         - !Ref DBSubnet2ID
         - !Ref DBSubnet3ID
 
-  ParameterGroupPostgres96:
+  ParameterGroupPostgres13:
     Type: AWS::RDS::DBParameterGroup
     Properties:
-      Description: Truyo DB parameter group (9.6)
+      Description: DB parameter group for PostgreSQL 13
       Family: !Ref PostgresFamily
       Parameters: {}
-    Condition: Postgres96
+    Condition: Postgres13
 
-  ParameterGroupPostgres11:
+  ParameterGroupPostgres14:
     Type: AWS::RDS::DBParameterGroup
     Properties:
-      Description: Truyo DB parameter group (11.6)
+      Description: DB parameter group for PostgreSQL 14
       Family: !Ref PostgresFamily
       Parameters: {}
-    Condition: Postgres11
+    Condition: Postgres14
+
+  ParameterGroupPostgres15:
+    Type: AWS::RDS::DBParameterGroup
+    Properties:
+      Description: DB parameter group for PostgreSQL 15
+      Family: !Ref PostgresFamily
+      Parameters: {}
+    Condition: Postgres15
 
   DatabaseSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -164,7 +175,13 @@ Resources:
       BackupRetentionPeriod: !Ref DBBackupRetention
       CopyTagsToSnapshot: 'true'
       DBInstanceClass: !Ref DBInstanceType
-      DBParameterGroupName: !If [Postgres96, !Ref ParameterGroupPostgres96, !Ref ParameterGroupPostgres11 ]
+      DBParameterGroupName: !If 
+        - Postgres13
+        - !Ref ParameterGroupPostgres13
+        - !If 
+          - Postgres14
+          - !Ref ParameterGroupPostgres14
+          - !Ref ParameterGroupPostgres15
       DBSubnetGroupName: !Ref DatabaseSubnetGroup
       PubliclyAccessible: "false"
       DBSnapshotIdentifier: !Ref DBSnapshotIdentifier

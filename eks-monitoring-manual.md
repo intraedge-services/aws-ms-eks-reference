@@ -6,7 +6,7 @@
   To complete the setup of Container Insights, you can follow the quick start instructions in this section.
   To deploy Container Insights using the quick start, enter the following command.
 ```
-curl https://raw.githubusercontent.com/aws-samples/amazon-cloudwatch-container-insights/latest/k8s-deployment-manifest-templates/deployment-mode/daemonset/container-insights-monitoring/quickstart/cwagent-fluentd-quickstart.yaml | sed "s/{{cluster_name}}/cluster-name/;s/{{region_name}}/cluster-region/" | kubectl apply -f -
+curl https://raw.githubusercontent.com/aws-samples/amazon-cloudwatch-container-insights/v1.247357.0b251975/k8s-deployment-manifest-templates/deployment-mode/daemonset/container-insights-monitoring/quickstart/cwagent-fluentd-quickstart.yaml | sed "s/{{cluster_name}}/cluster-name/;s/{{region_name}}/cluster-region/" | kubectl apply -f -
 ```
 
 Here, we need to give Amazon eks cluster-name and cluster-region according to created infrastructure.
@@ -17,7 +17,7 @@ In drop down you can see the monitoring options like, EKS Pods, EKS Nodes, EKS C
 #### Deleting Container Insights:
   To delete the container-insights run following command:
 ```
-curl https://raw.githubusercontent.com/aws-samples/amazon-cloudwatch-container-insights/latest/k8s-deployment-manifest-templates/deployment-mode/daemonset/container-insights-monitoring/quickstart/cwagent-fluentd-quickstart.yaml | sed "s/{{cluster_name}}/cluster-name/;s/{{region_name}}/cluster-region/" | kubectl delete -f -
+curl https://raw.githubusercontent.com/aws-samples/amazon-cloudwatch-container-insights/v1.247357.0b251975/k8s-deployment-manifest-templates/deployment-mode/daemonset/container-insights-monitoring/quickstart/cwagent-fluentd-quickstart.yaml | sed "s/{{cluster_name}}/cluster-name/;s/{{region_name}}/cluster-region/" | kubectl delete -f -
 ```
 
 #### Reference:
