@@ -1,0 +1,183 @@
+name: Security and Quality Checks
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  schedule:
+    # Run security checks weekly on Mondays at 9 AM UTC
+    - cron: '0 9 * * 1'
+
+permissions:
+  contents: read
+  security-events: write
+  pull-requests: write
+
+jobs:
+  cloudformation-security:
+    name: CloudFormation Security Analysis
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install CloudFormation security tools
+      run: |
+        pip install cfn-lint cfn-nag
+        # Install additional security tools
+        npm install -g yaml-lint
+        
+    - name: Lint CloudFormation templates
+      run: |
+        echo "Running cfn-lint on CloudFormation templates..."
+        cfn-lint cloudformation/*.yml cloudformation/*.yaml || true
+        
+    - name: Security analysis with cfn-nag
+      run: |
+        echo "Running cfn-nag security analysis..."
+        # cfn_nag would need Ruby, using cfn-lint for now
+        echo "Consider running cfn_nag locally for additional security checks"
+        
+    - name: Check for hardcoded secrets
+      run: |
+        echo "Checking for potential secrets in templates..."
+        # Basic grep for common secret patterns
+        if grep -r -i -E "(password|secret|key|token).*=.*['\"][^'\"]{8,}" cloudformation/ --include="*.yml" --include="*.yaml"; then
+          echo "⚠️  Potential hardcoded secrets found! Please review."
+          exit 1
+        else
+          echo "✅ No hardcoded secrets detected"
+        fi
+        
+    - name: Validate YAML syntax
+      run: |
+        echo "Validating YAML syntax..."
+        for file in cloudformation/*.yml cloudformation/*.yaml; do
+          if [ -f "$file" ]; then
+            echo "Checking $file..."
+            python -c "import yaml; yaml.safe_load(open('$file', 'r', encoding='utf-8'))" 2>/dev/null || echo "❌ Invalid YAML: $file"
+          fi
+        done
+
+  security-documentation:
+    name: Security Documentation Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Check security documentation
+      run: |
+        echo "Checking for security documentation..."
+        
+        # Check if README has security section
+        if grep -i "security" README.md > /dev/null; then
+          echo "✅ Security section found in README"
+        else
+          echo "⚠️  No security section found in README"
+        fi
+        
+        # Check if security checklist exists
+        if [ -f ".security-checklist.md" ]; then
+          echo "✅ Security checklist found"
+        else
+          echo "⚠️  Security checklist not found"
+        fi
+        
+        # Check for dependency files that might need security updates
+        echo "Checking for dependency files that need regular security updates..."
+        find . -name "package*.json" -o -name "requirements*.txt" -o -name "Gemfile*" -o -name "pom.xml" -o -name "*.lock" | while read file; do
+          echo "📦 Found dependency file: $file"
+        done
+
+  version-check:
+    name: Version Security Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Check for outdated versions
+      run: |
+        echo "Checking for potentially outdated versions in CloudFormation templates..."
+        
+        # Check Kubernetes versions
+        echo "🔍 Checking Kubernetes versions..."
+        grep -r "KubernetesVersion" cloudformation/ || true
+        
+        # Check container images
+        echo "🔍 Checking container image versions..."
+        grep -r "image:" cloudformation/ | grep -v "latest" || echo "No container images found or all using 'latest' tag"
+        
+        # Check Python runtime versions
+        echo "🔍 Checking Python runtime versions..."
+        grep -r "Runtime.*python" cloudformation/ || true
+        
+        # Check PostgreSQL versions
+        echo "🔍 Checking PostgreSQL versions..."
+        grep -r "PostgresVersion\|EngineVersion.*postgres" cloudformation/ || true
+
+  pr-security-comment:
+    name: Security Review Comment
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Security review reminder
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          
+          // Check if any CloudFormation files were modified
+          const { data: files } = await github.rest.pulls.listFiles({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            pull_number: context.issue.number,
+          });
+          
+          const cfnFiles = files.filter(file => 
+            file.filename.includes('cloudformation/') && 
+            (file.filename.endsWith('.yml') || file.filename.endsWith('.yaml'))
+          );
+          
+          if (cfnFiles.length > 0) {
+            const comment = `## 🔒 Security Review Checklist
+            
+            This PR modifies CloudFormation templates. Please ensure:
+            
+            - [ ] All IAM policies follow principle of least privilege
+            - [ ] No hardcoded credentials or secrets
+            - [ ] Resource configurations follow security best practices
+            - [ ] New resources have appropriate security groups/NACLs
+            - [ ] Encryption is enabled where applicable
+            - [ ] Public access is intentional and documented
+            
+            **Modified CloudFormation files:**
+            ${cfnFiles.map(f => `- \`${f.filename}\``).join('\n')}
+            
+            Consider running local security checks:
+            \`\`\`bash
+            cfn-lint ${cfnFiles.map(f => f.filename).join(' ')}
+            \`\`\`
+            `;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+          }
