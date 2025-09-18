@@ -11,7 +11,8 @@ This is a reference implementation of AWS EKS Stack using [AWS QuickStart templa
 
 
 ## Limitations
-- IAM Service Role for ALB does not include a check for authenticating subject and needs to be manually added post creation of stack See https://docs.aws.amazon.com/eks/latest/userguide/create-service-account-iam-policy-and-role.html#create-service-account-iam-role.  We are working on adding a custom resource so that this manual step can be avoided.
+- ~~IAM Service Role for ALB does not include a check for authenticating subject and needs to be manually added post creation of stack~~ **FIXED**: IAM role now includes proper StringEquals conditions for OIDC authentication
+- Consider using AWS Load Balancer Controller add-on for EKS instead of manual deployment for easier management
 
 ## Security
 
@@ -41,6 +42,8 @@ This reference implementation includes several security features and recommendat
 - **CloudFormation Linting**: Use `cfn-lint` and `cfn-nag` for template validation
 - **Container Scanning**: Use ECR image scanning for container vulnerabilities
 - **Runtime Security**: Enable GuardDuty and Security Hub for runtime monitoring
+- **Automated Security Checks**: See `.github/workflows/security-checks.yml` for CI/CD integration
+- **Security Checklist**: Review `.security-checklist.md` for ongoing security maintenance
 
 ## Support
 For support around this stack or need help around your AWS Infrastructure and application, contact: [cloudsales@intraedge.com](mailto:cloudsales@intraedge.com)

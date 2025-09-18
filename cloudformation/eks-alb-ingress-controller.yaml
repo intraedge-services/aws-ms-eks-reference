@@ -185,7 +185,7 @@ Resources:
       KubeConfigKmsContext: !Ref KubeConfigKmsContext
       # Kubernetes manifest
       Manifest:
-        # See https://raw.githubusercontent.com/kubernetes-sigs/aws-alb-ingress-controller/v1.1.4/docs/examples/rbac-role.yaml
+        # See https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.6.2/docs/install/rbac/rbac-role.yaml
         apiVersion: rbac.authorization.k8s.io/v1
         kind: ClusterRole
         metadata:
@@ -237,7 +237,7 @@ Resources:
       KubeConfigKmsContext: !Ref KubeConfigKmsContext
       # Kubernetes manifest
       Manifest:
-        # See https://raw.githubusercontent.com/kubernetes-sigs/aws-alb-ingress-controller/v1.1.4/docs/examples/rbac-role.yaml
+        # See https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.6.2/docs/install/rbac/rbac-role.yaml
         apiVersion: rbac.authorization.k8s.io/v1
         kind: ClusterRoleBinding
         metadata:
@@ -266,7 +266,7 @@ Resources:
       KubeConfigKmsContext: !Ref KubeConfigKmsContext
       # Kubernetes manifest
       Manifest:
-        # See https://raw.githubusercontent.com/kubernetes-sigs/aws-alb-ingress-controller/v1.1.4/docs/examples/rbac-role.yaml
+        # See https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.6.2/docs/install/rbac/rbac-role.yaml
         apiVersion: v1
         kind: ServiceAccount
         metadata:
@@ -290,10 +290,10 @@ Resources:
       KubeConfigKmsContext: !Ref KubeConfigKmsContext
       # Kubernetes manifest
       Manifest:
-      # See https://raw.githubusercontent.com/kubernetes-sigs/aws-alb-ingress-controller/v1.1.4/docs/examples/alb-ingress-controller.yaml
-      # Application Load Balancer (ALB) Ingress Controller Deployment Manifest.
-      # This manifest details sensible defaults for deploying an ALB Ingress Controller.
-      # GitHub: https://github.com/kubernetes-sigs/aws-alb-ingress-controller
+      # See https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.6.2/docs/install/v2_6_2_full.yaml
+      # AWS Load Balancer Controller Deployment Manifest.
+      # This manifest details sensible defaults for deploying the AWS Load Balancer Controller.
+      # GitHub: https://github.com/kubernetes-sigs/aws-load-balancer-controller
         apiVersion: apps/v1
         kind: Deployment
         metadata:

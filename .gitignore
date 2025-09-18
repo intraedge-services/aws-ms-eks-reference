@@ -127,3 +127,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Security scan results
+security-scan-results/
+cfn-nag-output/
+*.security-report
+.security-temp/
